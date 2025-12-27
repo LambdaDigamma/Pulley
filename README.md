@@ -15,6 +15,9 @@ A library to imitate the drawer in Maps for iOS 10/11. The master branch follows
 ### Update / Migration Info
 
 **ATTENTION:**
+
+**Pulley 3.0.0** updates the minimum deployment target to iOS 16.0+ and enhances visual effects to use modern material styles. The drawer now uses `systemUltraThinMaterial` by default for a glass-like appearance. All deprecated iOS APIs have been removed. Swift Package Manager configuration has been updated to swift-tools-version 5.9 for better compatibility with modern Xcode versions.
+
 Pulley 2.9.0 has new properties to support a new displayMode. The base functionality should work without any significant changes. The biggest change being the new displayMode of `.compact` to replicate Apple Maps Behavior on the iPhone SE size class devices. This is an exact replica of the behavior of the Apple Maps drawer, therefor when the `currentDisplayMode` of the `PulleyViewController` is `.compact` then the only `supportedDrawerPositions` for the view controller when in `.compact` mode are `.open`, `.closed`, and `.collapsed`. This mode also has new @IBInspectable properties, `compactInsets` and `compactWidth`. This mode behaves in a very similar way to `.panel` mode. See the pull request [here](https://github.com/52inc/Pulley/pull/347) for the motivation behind this feature. Also in this release, `setDrawerContentViewController(controller: UIViewController, position: PulleyPosition? = nil, animated: Bool = true, completion: PulleyAnimationCompletionBlock?)` has a new optional parameter `position` to set a new drawer position the drawer when a new `DrawerContentViewController` is set. See [this](https://github.com/52inc/Pulley/pull/349) pull request for the motivation behind this feature.
 
 
@@ -26,7 +29,7 @@ Pulley 2.4.0 changed PulleyPosition from an enum to a class. This won't affect m
 _Technical reason: Optional protocol methods require the @objc attribute. Arrays of Swift enums can't be exposed to Objective-C, and supportedDrawerPositions previously returned an array of PulleyPosition enums. This change allows for marking the protocol @objc so methods can be marked optional._
 
 ### Introduction
-Pulley is an easy to use drawer library meant to imitate the drawer in iOS 10/11's Maps app. It exposes a simple API that allows you to use any UIViewController subclass as the drawer content or the primary content.
+Pulley is an easy to use drawer library meant to imitate the drawer in iOS Maps app. It exposes a simple API that allows you to use any UIViewController subclass as the drawer content or the primary content. Now updated for modern iOS with enhanced visual effects.
 
 **Here's a preview (apologies for the potato gif):**
 
@@ -86,22 +89,21 @@ let pulleyController = PulleyViewController(contentViewController: mainContentVC
 
 **Important:** PulleyViewController is not accessible as a parent or as `self.pulleyViewController` until _during or after_ -viewWillAppear: if you're loading Pulley from Storyboards.
 
-#### iOS 11, Safe Areas, and the iPhone X
-Pulley has support for safe areas and the iPhone X. The sample project includes full support for this, and does a couple of UI tricks to make things look better. These are documented throughout the sample project.
+#### Safe Areas and Modern iOS Devices
+Pulley has full support for safe areas on all modern iOS devices including iPhone X and later models. The sample project includes full support for this, and does a couple of UI tricks to make things look better. These are documented throughout the sample project.
 
-The basic concepts of using Pulley post-iOS 11 are:
+The basic concepts of using Pulley with safe areas:
 
 1. The -topInset property is _from_ the top safe area, not the top of the screen.
 2. Most delegate methods have a new parameter that tells you the current bottom safe area.
 3. The drawer itself doesn't do anything special for the bottom safe area because everyone's UI will want to treat it a little differently. HOWEVER: The delegate methods have been updated to deliver you the current bottom safe area anytime that a value for a drawer position is requested from you. You can use this variable to compute the value you want to return for the drawer position. Checkout the sample project for a simple example on an easy approach to this.
 4. If you have UI bottom safe area customizations that you want to perform, I recommend using the delegate method `drawerPositionDidChange(drawer:bottomSafeArea:)` to modify your UI based on the value of bottomSafeArea. Any time the size of the Pulley view controller changes, this method will be called with a new bottom safe area height. The sample project uses this to modify the drawer 'header' height, as well as to adjust the contentInset for the UITableView. It's not automatically taken care of for you, but it should be a fairly simple thing to add.
-5. I do _not_ recommend constraining views to the safe are of the drawer content view controller. It won't actually work for the safe areas.
-6. If you want the map (or other UI) in the primary view controller to render under the status bar (or in the ears of the iPhone X), make sure you constrain it directly to the superview's 'top'. You may need to double click on the constraint, and then make sure it _isn't_ constrained 'relative to margin'.
-7. For backwards compatibility, iOS 9/10 use topLayoutGuide as the top safe area. Your implementation shouldn't need to worry about iOS versions, as that's taken care of for you by Pulley.
+5. I do _not_ recommend constraining views to the safe area of the drawer content view controller. It won't actually work for the safe areas.
+6. If you want the map (or other UI) in the primary view controller to render under the status bar (or in the notch area of newer iPhones), make sure you constrain it directly to the superview's 'top'. You may need to double click on the constraint, and then make sure it _isn't_ constrained 'relative to margin'.
 
-If you have any problems / questions while updating Pulley to iOS 11 SDK, please feel free to create an issue if the above information didn't solve your problem.
+If you have any problems / questions while using Pulley, please feel free to create an issue.
 
-Even if you've already seen the example project, I highly encourage looking at the new post-iOS 11 version of the sample project. It may have something that could help your iPhone X / safe area implementation.
+Even if you've already seen the example project, I highly encourage looking at the sample project. It may have something that could help your safe area implementation.
 
 #### 3 protocols exist for you to use:
 
@@ -146,7 +148,7 @@ if let drawer = self.parentViewController as? PulleyViewController
 5. You can adjust the shadow opacity applied to the drawer by setting the -shadowOpacity property on the `PulleyViewController`.
 6. You can adjust the shadow radius applied to the drawer by setting the -shadowRadius property on the `PulleyViewController`.
 7. You can adjust the background dimming color by setting the -backgroundDimmingColor to an opaque color on the `PulleyViewController`.
-8. You can adjust / remove the background blur effect by setting the -drawerBackgroundVisualEffectView property on the `PulleyViewController`.
+8. You can adjust / remove the background blur effect by setting the -drawerBackgroundVisualEffectView property on the `PulleyViewController`. By default, Pulley uses `systemUltraThinMaterial` for a modern glass-like appearance on iOS 16+.
 9. You can adjust the alpha of the background dimming color by setting the -backgroundDimmingOpacity property on the `PulleyViewController`.
 10. You can change the drawer position by calling setDrawerPosition( : ) on the `PulleyViewController`.
 11. If an object needs to receive delegate callbacks and _isn't_ one of the view controller's presented then you can use the -delegate property on the `PulleyViewController`.
@@ -159,7 +161,7 @@ if let drawer = self.parentViewController as? PulleyViewController
 
 ## Requirements
 
-- iOS 9.0+
-- Swift 4.0+
+- iOS 16.0+
+- Swift 5.0+
 
 
