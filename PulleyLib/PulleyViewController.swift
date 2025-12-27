@@ -330,19 +330,10 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
         }
     }
 
-    // Returns default blur style depends on iOS version.
-    // Uses the most modern material effects available for a glass-like appearance
+    // Returns default blur style for iOS 16+.
+    // Uses the thinnest material for a glass-like appearance
     private static var defaultBlurEffect: UIBlurEffect.Style {
-        if #available(iOS 18, *) {
-            // iOS 18+ uses the thinnest material for a liquid glass effect
-            return .systemUltraThinMaterial
-        } else if #available(iOS 16, *) {
-            // iOS 16-17 uses ultra thin material
-            return .systemUltraThinMaterial
-        } else {
-            // Fallback for older versions (shouldn't be reached with iOS 16+ minimum)
-            return .systemUltraThinMaterial
-        }
+        return .systemUltraThinMaterial
     }
 
     /// The background visual effect layer for the drawer. By default this uses systemUltraThinMaterial for a modern glass-like appearance. You can change this if you want, or assign nil to remove it.

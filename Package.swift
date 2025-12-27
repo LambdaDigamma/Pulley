@@ -43,10 +43,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "Pulley",
-            path: "PulleyLib",
-            swiftSettings: [
-                .enableUpcomingFeature("BareSlashRegexLiterals")
-            ]
+            path: "PulleyLib"
         )
     ],
     swiftLanguageVersions: [.v5]
