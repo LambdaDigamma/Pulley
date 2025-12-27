@@ -345,7 +345,7 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
         }
     }
 
-    /// The background visual effect layer for the drawer. By default this is the extraLight effect. You can change this if you want, or assign nil to remove it.
+    /// The background visual effect layer for the drawer. By default this uses systemUltraThinMaterial for a modern glass-like appearance. You can change this if you want, or assign nil to remove it.
     public var drawerBackgroundVisualEffectView: UIVisualEffectView? = UIVisualEffectView(effect: UIBlurEffect(style: defaultBlurEffect)) {
         willSet {
             drawerBackgroundVisualEffectView?.removeFromSuperview()
@@ -587,10 +587,10 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
     /// The drawer snap mode
     public var snapMode: PulleySnapMode = .nearestPositionUnlessExceeded(threshold: 20.0)
     
-    // The feedback generator to use for drawer positon changes. Note: This is 'Any' to preserve iOS 9 compatibilty. Assign a UIFeedbackGenerator to this property. Anything else will be ignored.
+    // The feedback generator to use for drawer position changes. Assign a UIFeedbackGenerator to this property. Anything else will be ignored.
     public var feedbackGenerator: Any?
     
-    /// Access to the safe areas that Pulley is using for layout (provides compatibility for iOS < 11)
+    /// Access to the safe areas that Pulley is using for layout
     open var pulleySafeAreaInsets: UIEdgeInsets {
         
         var safeAreaBottomInset: CGFloat = 0
@@ -1414,7 +1414,7 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
      */
     public func setPrimaryContentViewController(controller: UIViewController, animated: Bool = true, completion: PulleyAnimationCompletionBlock?)
     {
-        // Account for transition issue in iOS 11
+        // Ensure proper layout before transition
         controller.view.frame = primaryContentContainer.bounds
         controller.view.layoutIfNeeded()
         
@@ -1457,7 +1457,7 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
      */
     public func setDrawerContentViewController(controller: UIViewController, position: PulleyPosition? = nil, animated: Bool = true, completion: PulleyAnimationCompletionBlock?)
     {
-        // Account for transition issue in iOS 11
+        // Ensure proper layout before transition
         controller.view.frame = drawerContentContainer.bounds
         controller.view.layoutIfNeeded()
         
