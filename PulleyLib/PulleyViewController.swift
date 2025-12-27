@@ -330,16 +330,13 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
         }
     }
 
-    // Returns default blur style depends on iOS version.
+    // Returns default blur style for iOS 16+.
+    // Uses the thinnest material for a glass-like appearance
     private static var defaultBlurEffect: UIBlurEffect.Style {
-        if #available(iOS 13, *) {
-            return .systemUltraThinMaterial
-        } else {
-            return .extraLight
-        }
+        return .systemUltraThinMaterial
     }
 
-    /// The background visual effect layer for the drawer. By default this is the extraLight effect. You can change this if you want, or assign nil to remove it.
+    /// The background visual effect layer for the drawer. By default this uses systemUltraThinMaterial for a modern glass-like appearance. You can change this if you want, or assign nil to remove it.
     public var drawerBackgroundVisualEffectView: UIVisualEffectView? = UIVisualEffectView(effect: UIBlurEffect(style: defaultBlurEffect)) {
         willSet {
             drawerBackgroundVisualEffectView?.removeFromSuperview()
@@ -581,10 +578,10 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
     /// The drawer snap mode
     public var snapMode: PulleySnapMode = .nearestPositionUnlessExceeded(threshold: 20.0)
     
-    // The feedback generator to use for drawer positon changes. Note: This is 'Any' to preserve iOS 9 compatibilty. Assign a UIFeedbackGenerator to this property. Anything else will be ignored.
+    // The feedback generator to use for drawer position changes. Assign a UIFeedbackGenerator to this property. Anything else will be ignored.
     public var feedbackGenerator: Any?
     
-    /// Access to the safe areas that Pulley is using for layout (provides compatibility for iOS < 11)
+    /// Access to the safe areas that Pulley is using for layout
     open var pulleySafeAreaInsets: UIEdgeInsets {
         
         var safeAreaBottomInset: CGFloat = 0
@@ -592,18 +589,10 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
         var safeAreaRightInset: CGFloat = 0
         var safeAreaTopInset: CGFloat = 0
         
-        if #available(iOS 11.0, *)
-        {
-            safeAreaBottomInset = view.safeAreaInsets.bottom
-            safeAreaLeftInset = view.safeAreaInsets.left
-            safeAreaRightInset = view.safeAreaInsets.right
-            safeAreaTopInset = view.safeAreaInsets.top
-        }
-        else
-        {
-            safeAreaBottomInset = self.bottomLayoutGuide.length
-            safeAreaTopInset = self.topLayoutGuide.length
-        }
+        safeAreaBottomInset = view.safeAreaInsets.bottom
+        safeAreaLeftInset = view.safeAreaInsets.left
+        safeAreaRightInset = view.safeAreaInsets.right
+        safeAreaTopInset = view.safeAreaInsets.top
         
         return UIEdgeInsets(top: safeAreaTopInset, left: safeAreaLeftInset, bottom: safeAreaBottomInset, right: safeAreaRightInset)
     }
@@ -913,14 +902,8 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
         
         if displayModeForCurrentLayout == .drawer
         {
-            // Bottom inset for safe area / bottomLayoutGuide
-            if #available(iOS 11, *) {
-                self.drawerScrollView.contentInsetAdjustmentBehavior = .scrollableAxes
-            } else {
-                self.automaticallyAdjustsScrollViewInsets = false
-                self.drawerScrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: self.bottomLayoutGuide.length, right: 0)
-                self.drawerScrollView.scrollIndicatorInsets =  UIEdgeInsets(top: 0, left: 0, bottom: self.bottomLayoutGuide.length, right: 0) // (usefull if visible..)
-            }
+            // Bottom inset for safe area
+            self.drawerScrollView.contentInsetAdjustmentBehavior = .scrollableAxes
 
             let lowestStop = getStopList().min() ?? 0
             
@@ -981,14 +964,8 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
         }
         else
         {
-            // Bottom inset for safe area / bottomLayoutGuide
-            if #available(iOS 11, *) {
-                self.drawerScrollView.contentInsetAdjustmentBehavior = .scrollableAxes
-            } else {
-                self.automaticallyAdjustsScrollViewInsets = false
-                self.drawerScrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0.0, right: 0)
-                self.drawerScrollView.scrollIndicatorInsets =  UIEdgeInsets(top: 0, left: 0, bottom: 0.0, right: 0)
-            }
+            // Bottom inset for safe area
+            self.drawerScrollView.contentInsetAdjustmentBehavior = .scrollableAxes
             
             // Layout container
             var collapsedHeight:CGFloat = kPulleyDefaultCollapsedHeight
@@ -1195,25 +1172,19 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
     }
     
     open func prepareFeedbackGenerator() {
-        
-        if #available(iOS 10.0, *) {
-            if let generator = feedbackGenerator as? UIFeedbackGenerator
-            {
-                generator.prepare()
-            }
+        if let generator = feedbackGenerator as? UIFeedbackGenerator
+        {
+            generator.prepare()
         }
     }
     
     open func triggerFeedbackGenerator() {
+        // prepareFeedbackGenerator() is also added to scrollViewWillEndDragging to improve time between haptic engine triggering feedback and the call to prepare.
+        prepareFeedbackGenerator()
         
-        if #available(iOS 10.0, *) {
-            // prepareFeedbackGenerator() is also added to scrollViewWillEndDragging to improve time between haptic engine triggering feedback and the call to prepare.
-            prepareFeedbackGenerator()
-            
-            (feedbackGenerator as? UIImpactFeedbackGenerator)?.impactOccurred()
-            (feedbackGenerator as? UISelectionFeedbackGenerator)?.selectionChanged()
-            (feedbackGenerator as? UINotificationFeedbackGenerator)?.notificationOccurred(.success)
-        }
+        (feedbackGenerator as? UIImpactFeedbackGenerator)?.impactOccurred()
+        (feedbackGenerator as? UISelectionFeedbackGenerator)?.selectionChanged()
+        (feedbackGenerator as? UINotificationFeedbackGenerator)?.notificationOccurred(.success)
     }
     
     /// Add a gesture recognizer to the drawer scrollview
@@ -1434,7 +1405,7 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
      */
     public func setPrimaryContentViewController(controller: UIViewController, animated: Bool = true, completion: PulleyAnimationCompletionBlock?)
     {
-        // Account for transition issue in iOS 11
+        // Ensure proper layout before transition
         controller.view.frame = primaryContentContainer.bounds
         controller.view.layoutIfNeeded()
         
@@ -1477,7 +1448,7 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
      */
     public func setDrawerContentViewController(controller: UIViewController, position: PulleyPosition? = nil, animated: Bool = true, completion: PulleyAnimationCompletionBlock?)
     {
-        // Account for transition issue in iOS 11
+        // Ensure proper layout before transition
         controller.view.frame = drawerContentContainer.bounds
         controller.view.layoutIfNeeded()
         
@@ -1583,18 +1554,10 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
     open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
-        if #available(iOS 10.0, *) {
-            coordinator.notifyWhenInteractionChanges { [weak self] context in
-                guard let currentPosition = self?.drawerPosition else { return }
-                self?.setDrawerPosition(position: currentPosition, animated: false)
-            }
-        } else {
-            coordinator.notifyWhenInteractionEnds { [weak self] context in
-                guard let currentPosition = self?.drawerPosition else { return }
-                self?.setDrawerPosition(position: currentPosition, animated: false)
-            }
+        coordinator.notifyWhenInteractionChanges { [weak self] context in
+            guard let currentPosition = self?.drawerPosition else { return }
+            self?.setDrawerPosition(position: currentPosition, animated: false)
         }
-        
     }
     
     // MARK: PulleyDrawerViewControllerDelegate implementation for nested Pulley view controllers in drawers. Implemented here, rather than an extension because overriding extensions in subclasses isn't good practice. Some developers want to subclass Pulley and customize these behaviors, so we'll move them here.
